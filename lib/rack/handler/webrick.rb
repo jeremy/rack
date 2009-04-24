@@ -56,7 +56,7 @@ module Rack
             end
           }
           body.each { |part|
-            res.body << part
+            res.body << part.to_s
           }
         ensure
           body.close  if body.respond_to? :close

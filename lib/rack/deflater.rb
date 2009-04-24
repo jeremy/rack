@@ -60,7 +60,7 @@ module Rack
         @writer = block
         gzip  =::Zlib::GzipWriter.new(self)
         gzip.mtime = @mtime
-        @body.each { |part| gzip << part }
+        @body.each { |part| gzip << part.to_s }
         @body.close if @body.respond_to?(:close)
         gzip.close
         @writer = nil
@@ -86,7 +86,7 @@ module Rack
 
       def each
         deflater = ::Zlib::Deflate.new(*DEFLATE_ARGS)
-        @body.each { |part| yield deflater.deflate(part) }
+        @body.each { |part| yield deflater.deflate(part.to_s) }
         @body.close if @body.respond_to?(:close)
         yield deflater.finish
         nil

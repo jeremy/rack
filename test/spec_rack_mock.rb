@@ -142,6 +142,19 @@ context "Rack::MockResponse" do
     res.should.satisfy { |r| r.match(/rack/) }
   end
 
+  specify "should build the body from each response part" do
+    part = Object.new
+    def part.to_s; 'bar' end
+    body = ['foo', part]
+    res = nil
+    should.not.raise NoMethodError do
+      res = Rack::MockRequest.new(lambda { [200, {}, body] }).get('/')
+    end
+    res.should.be.ok
+    res.body.should.not.be body.first
+    res.body.should.equal body.join
+  end
+
   specify "should provide access to the Rack errors" do
     res = Rack::MockRequest.new(app).get("/?error=foo", :lint => true)
     res.should.be.ok

@@ -19,7 +19,8 @@ module Rack
          (body.respond_to?(:to_ary) || body.respond_to?(:to_str))
 
         body = [body] if body.respond_to?(:to_str) # rack 0.4 compat
-        length = body.to_ary.inject(0) { |len, part| len + bytesize(part) }
+        length = body.to_ary.inject(0) { |len, part| len + bytesize(part.to_s) }
+
         headers['Content-Length'] = length.to_s
       end
 

@@ -34,6 +34,7 @@ module Rack
     def each
       length = 0
       @body.each { |part|
+        part = part.to_s
         length += part.size
         yield part
       }

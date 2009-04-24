@@ -123,7 +123,7 @@ module Rack
       }
 
       @body = ""
-      body.each { |part| @body << part }
+      body.each { |part| @body << part.to_s }
 
       @errors = errors.string
     end

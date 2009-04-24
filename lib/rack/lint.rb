@@ -457,12 +457,12 @@ module Rack
 
           if @body.respond_to?(:to_ary)
             @body.each { |part|
-              unless part.kind_of?(String)
+              unless part.respond_to?(:to_s)
                 string_body = false
                 break
               end
 
-              bytes += Rack::Utils.bytesize(part)
+              bytes += Rack::Utils.bytesize(part.to_s)
             }
 
             if env["REQUEST_METHOD"] == "HEAD"
@@ -488,9 +488,9 @@ module Rack
       @closed = false
       ## The Body must respond to +each+
       @body.each { |part|
-        ## and must only yield String values.
-        assert("Body yielded non-string value #{part.inspect}") {
-          part.instance_of? String
+        ## and must only yield values which respond to +to_s+
+        assert("Body yielded value not responding to +to_s+") {
+          part.respond_to? :to_s
         }
         yield part
       }

@@ -246,12 +246,15 @@ context "Rack::Lint" do
 
   specify "notices body errors" do
     lambda {
+      class << err = Object.new
+        undef_method :to_s
+      end
       status, header, body = Rack::Lint.new(lambda { |env|
-                               [200, {"Content-type" => "text/plain","Content-length" => "3"}, [1,2,3]]
+                               [200, {"Content-type" => "text/plain","Content-length" => "3"}, [err]]
                              }).call(env({}))
       body.each { |part| }
     }.should.raise(Rack::Lint::LintError).
-      message.should.match(/yielded non-string/)
+      message.should.match(/yielded value not responding to/)
   end
 
   specify "notices input handling errors" do

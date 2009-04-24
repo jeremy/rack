@@ -35,6 +35,7 @@ module Rack
     def each
       term = "\r\n"
       @body.each do |chunk|
+        chunk = chunk.to_s
         size = bytesize(chunk)
         next if size == 0
         yield [size.to_s(16), term, chunk, term].join

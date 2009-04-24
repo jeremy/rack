@@ -14,6 +14,14 @@ context "Rack::ContentLength" do
     response[1]['Content-Length'].should.equal '13'
   end
 
+  specify "transforms body to string representations before calculating length" do
+    obj = Object.new
+    app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, [obj]] }
+    status, headers, body = Rack::ContentLength.new(app).call({})
+    body.should.equal [obj]
+    headers['Content-Length'].should.equal obj.to_s.size.to_s
+  end
+
   specify "does not set Content-Length on variable length bodies" do
     body = lambda { "Hello World!" }
     def body.each ; yield call ; end
