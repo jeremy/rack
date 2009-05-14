@@ -6,6 +6,8 @@ begin
   require 'rack/response'
   require 'thread'
 
+  pool = Rack::Session::Memcache.new(lambda {})
+
   context "Rack::Session::Memcache" do
     session_key = Rack::Session::Memcache::DEFAULT_OPTIONS[:key]
     session_match = /#{session_key}=[0-9a-fA-F]+;/
@@ -32,9 +34,15 @@ begin
     end
 
     specify "faults on no connection" do
-      lambda do
-        Rack::Session::Memcache.new(incrementor, :memcache_server => '')
-      end.should.raise
+      if RUBY_VERSION < "1.9"
+        lambda do
+          Rack::Session::Memcache.new(incrementor, :memcache_server => '')
+        end.should.raise
+      else
+        lambda do
+          Rack::Session::Memcache.new(incrementor, :memcache_server => '')
+        end.should.raise ArgumentError
+      end
     end
 
     specify "creates a new cookie" do
@@ -178,9 +186,9 @@ begin
           run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
         end
       end.reverse.map{|t| t.run.join.value }
-      r.each do |res|
-        res['Set-Cookie'].should.equal cookie
-        res.body.should.include '"counter"=>2'
+      r.each do |request|
+        request['Set-Cookie'].should.equal cookie
+        request.body.should.include '"counter"=>2'
       end
 
       session = pool.pool.get(sess_id)
@@ -202,9 +210,9 @@ begin
           run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
         end
       end.reverse.map{|t| t.run.join.value }
-      r.each do |res|
-        res['Set-Cookie'].should.equal cookie
-        res.body.should.include '"counter"=>3'
+      r.each do |request|
+        request['Set-Cookie'].should.equal cookie
+        request.body.should.include '"counter"=>3'
       end
 
       session = pool.pool.get(sess_id)
@@ -224,9 +232,9 @@ begin
           run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
         end
       end.reverse.map{|t| t.run.join.value }
-      r.each do |res|
-        res['Set-Cookie'].should.equal cookie
-        res.body.should.include '"foo"=>"bar"'
+      r.each do |request|
+        request['Set-Cookie'].should.equal cookie
+        request.body.should.include '"foo"=>"bar"'
       end
 
       session = pool.pool.get(sess_id)
@@ -235,6 +243,8 @@ begin
       session['foo'].should.equal 'bar'
     end
   end
+rescue RuntimeError
+  $stderr.puts "Skipping Rack::Session::Memcache tests. Start memcached and try again."
 rescue LoadError
   $stderr.puts "Skipping Rack::Session::Memcache tests (Memcache is required). `gem install memcache-client` and try again."
 end

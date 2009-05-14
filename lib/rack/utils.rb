@@ -1,3 +1,5 @@
+# -*- encoding: binary -*-
+
 require 'set'
 require 'tempfile'
 
@@ -63,7 +65,7 @@ module Rack
     module_function :parse_nested_query
 
     def normalize_params(params, name, v = nil)
-      name =~ %r([\[\]]*([^\[\]]+)\]*)
+      name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
       k = $1 || ''
       after = $' || ''
 
@@ -351,7 +353,7 @@ module Rack
           input = env['rack.input']
           input.rewind
 
-          boundary_size = boundary.size + EOL.size
+          boundary_size = Utils.bytesize(boundary) + EOL.size
           bufsize = 16384
 
           content_length -= boundary_size
@@ -441,6 +443,26 @@ module Rack
       end
 
       def self.build_multipart(params, first = true)
+        if first
+          unless params.is_a?(Hash)
+            raise ArgumentError, "value must be a Hash"
+          end
+
+          multipart = false
+          query = lambda { |value|
+            case value
+            when Array
+              value.each(&query)
+            when Hash
+              value.values.each(&query)
+            when UploadedFile
+              multipart = true
+            end
+          }
+          params.values.each(&query)
+          return nil unless multipart
+        end
+
         flattened_params = Hash.new
 
         params.each do |key, value|
