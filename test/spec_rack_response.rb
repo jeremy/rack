@@ -26,15 +26,15 @@ context "Rack::Response" do
     response = Rack::Response.new
 
     status, header, body = response.finish do
-      response.write "foo"
-      response.write "bar"
-      response.write "baz"
+      response.write(:foo).should.equal "foo"
+      response.write(123).should.equal "123"
+      response.write("baz").should.equal "baz"
     end
     
     parts = []
     body.each { |part| parts << part }
     
-    parts.should.equal ["foo", "bar", "baz"]
+    parts.should.equal ["foo", "123", "baz"]
   end
 
   specify "can set and read headers" do
@@ -195,6 +195,7 @@ context "Rack::Response" do
   specify "does not add or change Content-Length when #finish()ing" do
     res = Rack::Response.new
     res.status = 200
+    res.headers["Content-Length"].should.be.nil
     res.finish
     res.headers["Content-Length"].should.be.nil
 
@@ -205,14 +206,22 @@ context "Rack::Response" do
     res.headers["Content-Length"].should.equal "10"
   end
 
-  specify "updates Content-Length when body appended to using #write" do
+  specify "sets Content-Length when #finish()ing, not on #write" do
     res = Rack::Response.new
-    res.status = 200
+    res.length.should.be.nil
     res.headers["Content-Length"].should.be.nil
+
+    res.finish
+    res.length.should.be.nil
+    res.headers["Content-Length"].should.be.nil
+
     res.write "Hi"
+    res.length.should.equal 2
+    res.headers["Content-Length"].should.be.nil
+
+    res.finish
+    res.length.should.equal 2
     res.headers["Content-Length"].should.equal "2"
-    res.write " there"
-    res.headers["Content-Length"].should.equal "8"
   end
 
 end

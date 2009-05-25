@@ -25,16 +25,14 @@ module Rack
 
       @writer = lambda { |x| @body << x }
       @block = nil
-      @length = 0
+      @length = nil
 
       @body = []
 
       if body.respond_to? :to_str
-        write body.to_str
+        write body
       elsif body.respond_to?(:each)
-        body.each { |part|
-          write part.to_s
-        }
+        body.each { |part| write part }
       else
         raise TypeError, "stringable or iterable required"
       end
@@ -107,6 +105,7 @@ module Rack
         header.delete "Content-Type"
         [status.to_i, header.to_hash, []]
       else
+        header["Content-Length"] = @length.to_s if @length
         [status.to_i, header.to_hash, self]
       end
     end
@@ -124,11 +123,10 @@ module Rack
     #
     def write(str)
       s = str.to_s
+      @length ||= 0
       @length += Rack::Utils.bytesize(s)
       @writer.call s
-
-      header["Content-Length"] = @length.to_s
-      str
+      s
     end
 
     def close
