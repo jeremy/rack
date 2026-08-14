@@ -1,0 +1,23 @@
+lib/rack/method_override.rb
+  s_c5be87f9a0a36f::t_aa6ab23ba0483b 15-22,31-32,36,42
+  s_c5be87f9a0a36f::t_52c418c97ecfe0 64-66,71,73-77
+  s_c5be87f9a0a36f::t_94e8aa1153c469 67-70,72
+test/spec_method_override.rb
+  s_c5be87f9a0a36f::t_fa297870155836 46-71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "c70f69794e25c87ab5cb2f781bba8e337ff424ed",
+  "prompts": {},
+  "sessions": {
+    "s_c5be87f9a0a36f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c2d38099-a321-4164-94db-c0396bddc647",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Jeremy Daer <jeremydaer@gmail.com>"
+    }
+  }
+}
